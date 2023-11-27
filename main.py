@@ -1,5 +1,5 @@
-from flask import Flask,request,jsonify,json
-from functions import get_data, find_first_free_id, insert_user, update_user
+from flask import Flask,request,jsonify
+from functions import get_data, insert_user, update_user, delete_user
 
 app = Flask(__name__)
 
@@ -18,5 +18,9 @@ def add_users():
     return "Success", 201
 
 @app.route('/users/<int:user_id>', methods=['PATCH'])
-def patch_user(user_id):
+def change_user(user_id):
     return update_user(user_id)
+
+@app.route('/users/<int:user_id>', methods=['DELETE'])
+def remove_user(user_id):
+    return delete_user(user_id)
