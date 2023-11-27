@@ -1,0 +1,1 @@
+# operacje-na-bazie-u-ytkownik-w
