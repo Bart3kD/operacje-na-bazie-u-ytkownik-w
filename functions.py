@@ -23,22 +23,23 @@ def find_first_free_id() -> int:
 
 def update_user(user_id: int = 0):
 
-    if user_id == 0:
-        return jsonify({"error": "Id is requied"}), 400
+    if user_id:
 
-    users = load_json()
-    user = next((u for u in users if u['id'] == user_id), None)
+        users = load_json()
+        user = next((u for u in users if u['id'] == user_id), None)
 
-    if user is None:
-        return jsonify({"error": "User not found"}), 404
+        if user is None:
+            return jsonify({"error": "User not found"}), 404
 
-    if not request.json:
-        return jsonify({"error": "Request body is empty or in the wrong format"}), 400
+        if not request.json:
+            return jsonify({"error": "Request body is empty or in the wrong format"}), 400
 
-    for key, value in request.json.items():
-        if key in ["name", "lastname"]:
-            user[key] = value
-        else:
-            return jsonify({"error": f"Invalid field: {key}"}), 400
+        for key, value in request.json.items():
+            if key in ["name", "lastname"]:
+                user[key] = value
+            else:
+                return jsonify({"error": f"Invalid field: {key}"}), 400
 
-    return '', 204
+        return '', 204
+    
+    return jsonify({"error": "Id is requied"}), 400
