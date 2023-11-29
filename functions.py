@@ -13,6 +13,12 @@ def load_json():
     return data
 
 
+def save_json(data):
+    with open('data.json', 'w') as file:
+        json.dump(data, file, indent=2)
+
+
+
 def get_data(id: int = 0):
 
     data = load_json()
@@ -39,24 +45,25 @@ def find_first_free_id() -> int:
     return first_free_id
 
 
-def insert_user():
-
-    if not request.json or "name" not in request.json or "lastname" not in request.json:
+def insert_user(user_data):
+    if not user_data or "name" not in user_data or "lastname" not in user_data:
         return jsonify({"error": "Invalid request body"}), 400
 
     users = load_json()
-    
+
     new_user_id = find_first_free_id()
 
     new_user = {
         "id": new_user_id,
-        "name": request.json["name"],
-        "lastname": request.json["lastname"]
+        "name": user_data["name"],
+        "lastname": user_data["lastname"]
     }
 
     users.append(new_user)
 
-    return jsonify(new_user), 201
+    save_json(users)
+
+    return '', 201
 
 
 def update_user(user_id: int = 0):
@@ -96,3 +103,31 @@ def delete_user(user_id: int = 0):
         return '', 204
 
     return jsonify({"error": "User doesn't exist"}), 400
+
+
+def update_or_create_user(user_id: int = 0):
+    users = load_json()
+
+    user = next((u for u in users if u['id'] == user_id), None)
+
+    if user is None:
+        new_user_id = find_first_free_id()
+        new_user = {
+            "id": new_user_id,
+            "name": request.json.get("name", ""),
+            "lastname": request.json.get("lastname", "")
+        }
+        users.append(new_user)
+    else:
+        if not request.json:
+            return jsonify({"error": "Request body is empty or in the wrong format"}), 400
+
+        for key, value in request.json.items():
+            if key in ["name", "lastname"]:
+                user[key] = value
+            else:
+                return jsonify({"error": f"Invalid field: {key}"}), 400
+
+    save_json(users)
+
+    return '', 204
