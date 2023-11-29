@@ -1,7 +1,7 @@
 import json
 from main import app
 from unittest.mock import mock_open, patch
-from functions import load_json, get_data, find_first_free_id, insert_user, update_user, delete_user
+from functions import load_json, get_data, find_first_free_id, insert_user, update_user, delete_user, update_or_create_user
 
 
 
@@ -36,12 +36,13 @@ def test_find_first_free_id() -> None:
 
 def test_insert_user() -> None:
     request_data = {'json': {'name': 'John', 'lastname': 'Doe'}}
-    
+
     with app.test_request_context('/users', json=request_data['json']):
         with patch('functions.load_json', return_value=[]):
             with patch('functions.find_first_free_id', return_value=1):
-                response = insert_user()
+                response = insert_user(request_data['json'])
                 assert response[1] == 201
+
 
 
 
@@ -64,3 +65,19 @@ def test_delete_user() -> None:
         with patch('functions.load_json', return_value=[{"id": 1, "name": "John", "lastname": "Doe"}]):
             response = delete_user(user_id)
             assert response[1] == 204
+
+def test_update_or_create_user() -> None:
+    user_id = 1
+    updated_name = 'UpdatedName'
+    updated_lastname = 'UpdatedLastName'
+    request_data = {'json': {'name': updated_name, 'lastname': updated_lastname}}
+
+    with app.test_request_context(f'/users/{user_id}', json=request_data['json']):
+        with patch('functions.load_json', return_value=[{"id": 1, "name": "John", "lastname": "Doe"}]):
+            with patch('functions.find_first_free_id', return_value=2):
+                with patch('functions.save_json') as mock_save_json:
+                    response = update_or_create_user(user_id)
+                    assert response[1] == 204
+
+    mock_save_json.assert_called_once_with([{"id": 1, "name": "UpdatedName", "lastname": "UpdatedLastName"}])
+
