@@ -18,11 +18,13 @@ def get_data(id: int = 0):
     data = load_json()
 
     if id:
+        if id not in [user["id"] for user in data]:
+            return jsonify({"error": f"User with ID {id} not found"}), 404
 
         return [user for user in data if user["id"] == id]
     else:
-
         return data
+
 
 
 def find_first_free_id() -> int:
@@ -58,27 +60,26 @@ def insert_user():
 
 
 def update_user(user_id: int = 0):
+    if not user_id:
+        return jsonify({"error": "Id is required"}), 400
 
-    if user_id:
+    users = load_json()
 
-        users = load_json()
-        user = next((u for u in users if u['id'] == user_id), None)
+    user = next((u for u in users if u['id'] == user_id), None)
 
-        if user is None:
-            return jsonify({"error": "User not found"}), 400
+    if user is None:
+        return jsonify({"error": "User not found"}), 400
 
-        if not request.json:
-            return jsonify({"error": "Request body is empty or in the wrong format"}), 400
+    if not request.json:
+        return jsonify({"error": "Request body is empty or in the wrong format"}), 400
 
-        for key, value in request.json.items():
-            if key in ["name", "lastname"]:
-                user[key] = value
-            else:
-                return jsonify({"error": f"Invalid field: {key}"}), 400
+    for key, value in request.json.items():
+        if key in ["name", "lastname"]:
+            user[key] = value
+        else:
+            return jsonify({"error": f"Invalid field: {key}"}), 400
 
-        return '', 204
-    
-    return jsonify({"error": "Id is requied"}), 400
+    return '', 204
 
 
 def delete_user(user_id: int = 0):
